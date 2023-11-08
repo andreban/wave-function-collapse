@@ -4,7 +4,8 @@
   "description": "An Offscreen Canvas demo running Wave Function Collapse",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "parcel",
+    "build": "parcel build"
   },
   "keywords": [
     "offscreen-canvas"
