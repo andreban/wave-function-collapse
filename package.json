@@ -1,0 +1,17 @@
+{
+  "name": "wave-function-collapse",
+  "version": "0.1.0",
+  "description": "An Offscreen Canvas demo running Wave Function Collapse",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "offscreen-canvas"
+  ],
+  "author": "",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "parcel": "^2.10.2"
+  }
+}
