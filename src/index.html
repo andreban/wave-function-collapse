@@ -8,16 +8,18 @@
         <style>
             body {
                 margin: 0;
-                padding: 0;
+                padding: 0 16px;
                 background-color: #333;
                 color: beige;
             }
             canvas {
                 border: 1px solid black;
+                width: 80vw;
+                max-width: 640px;
             }
             header, .container {
                 display: flex;
-                flex-direction: row;
+                flex-direction: column;
                 align-items: start;
                 justify-content: space-evenly;
             }
@@ -39,6 +41,6 @@
             <canvas id="output-canvas" width="640" height="640">
                 Your browser does not support the HTML5 canvas tag.
             </canvas>
-        </div>    
+        </div>
     </body>
 </html>
