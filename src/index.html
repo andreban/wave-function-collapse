@@ -5,12 +5,40 @@
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>Wave Function Collapse - Offscreen Canvas Demo</title>
         <script src="index.ts" type="module"></script>
+        <style>
+            body {
+                margin: 0;
+                padding: 0;
+                background-color: #333;
+                color: beige;
+            }
+            canvas {
+                border: 1px solid black;
+            }
+            header, .container {
+                display: flex;
+                flex-direction: row;
+                align-items: start;
+                justify-content: space-evenly;
+            }
+        </style>
     </head>
     <body>
-        <h1>Hello, World :P</h1>        
-        <div><img src="pipe-tileset.png" /></div>
-        <canvas id="output-canvas" width="640" height="640">
-
-        </canvas>
+        <header>
+            <h1>Wave Function Collapse Demo</h1>    
+        </header>
+        <div class="container">
+            <div>
+                <img src="pipe-tileset.png" alt="The sample tileset"/>
+                <div>
+                    <button id="next-button">Next</button>
+                    <button id="run-button">Run</button>
+                    <button id="reset-button">Reset</button>
+                </div>
+            </div>
+            <canvas id="output-canvas" width="640" height="640">
+                Your browser does not support the HTML5 canvas tag.
+            </canvas>
+        </div>    
     </body>
 </html>
