@@ -1,4 +1,5 @@
 import pipeConstraints from './pipe-constraints.json';
+import sampleBoard from './sample.json';
 
 const TILE_SIZE = 32;
 const BOARD_WIDTH = 20;
@@ -13,7 +14,13 @@ const outputCanvas = document.querySelector('#output-canvas') as HTMLCanvasEleme
 const nextButton = document.querySelector('#next-button') as HTMLButtonElement;
 const runButton = document.querySelector('#run-button') as HTMLButtonElement;
 const resetButton = document.querySelector('#reset-button') as HTMLButtonElement;
+const deriveConstraintsCheckbox = document.querySelector('#derive-constraints-checkbox') as HTMLInputElement;
+
 const ctx = outputCanvas.getContext('2d')!;
+
+type TileConstraints = {
+    top: Array<number>, right: Array<number>, bottom: Array<number>, left: Array<number>
+};
 
 class Tile {
     x: number;
@@ -27,6 +34,62 @@ class Tile {
         this.options = options;
         this.selectedSprite = undefined;
     }
+}
+
+function deriveConstraints(sampleBoard: [number]) {
+    // Gets a value at position (x, y) on the board. If the position is out of bounds, then null is
+    // returned.
+    const valueAt = (x: number, y: number): number | null => {
+        if (x < 0 || x >= BOARD_WIDTH || y < 0 || y >= BOARD_HEIGHT) {
+            return null;
+        }
+
+        let position = y * BOARD_WIDTH + x;
+        return sampleBoard[position];
+    }
+
+    let constraintsByType = new Map<number, TileConstraints>();
+    for (let col = 0; col < BOARD_WIDTH; col++) {
+        for (let row = 0; row < BOARD_HEIGHT; row++) {
+            let value = valueAt(col, row);
+            if (value === null) {
+                continue;
+            }
+
+            let constraints = constraintsByType.get(value);
+            if (!constraints) {
+                constraints = {top: [], right: [], bottom: [], left: []};
+            }
+            
+            let top = valueAt(col, row - 1);
+            if (top !== null) {
+                constraints.top.push(top);
+            }
+
+            let right = valueAt(col + 1, row);
+            if (right !== null) {
+                constraints.right.push(right);
+            }
+
+            let bottom = valueAt(col, row + 1);
+            if (bottom !== null) {
+                constraints.bottom.push(bottom);
+            }
+
+            let left = valueAt(col - 1, row);
+            if (left !== null) {
+                constraints.left.push(left);
+            }
+            constraintsByType.set(value, constraints);
+        }
+    }
+
+    return [...constraintsByType.entries()].map(([key, value]) => {
+        return {
+            id: key,
+            constraints: value,
+        }
+    });
 }
 
 async function loadImage(url: URL): Promise<HTMLImageElement> {
@@ -58,6 +121,8 @@ function selectLowestEntropyTile(tiles: Array<Tile>): Tile | null {
     let sorted = tiles
         .filter((t) => t.selectedSprite === undefined)
         .sort((a, b) => a.options.length - b.options.length);
+
+    // Finished!
     if (sorted.length === 0) {
         return null;
     }
@@ -68,14 +133,17 @@ function selectLowestEntropyTile(tiles: Array<Tile>): Tile | null {
 }
 
 (async () => {
+    let shouldDeriveConstraints = deriveConstraintsCheckbox.checked;
+    let allConstraints = shouldDeriveConstraints ?
+         deriveConstraints(sampleBoard as [number]) : pipeConstraints;
     let tiles: Array<Tile> = [];
     let imagePromise = await loadImage(TILE_SPRITESHEET_URL);
 
     // Initialize Tiles...
     function resetBoard() {
         tiles = [];
-        for (let row = 0; row < BOARD_HEIGHT; row++) {
-            for (let col = 0; col < BOARD_WIDTH; col++) {
+        for (let col = 0; col < BOARD_WIDTH; col++) {
+            for (let row = 0; row < BOARD_HEIGHT; row++) {
                 tiles.push(new Tile(row, col, [...TILE_IDS]));
             }
         }
@@ -99,7 +167,7 @@ function selectLowestEntropyTile(tiles: Array<Tile>): Tile | null {
         nextTile.selectedSprite = tileId;
         
         // Get the constraints for the next tile.
-        let constraints = pipeConstraints.find((c) => c.id === tileId)!.constraints;
+        let constraints = allConstraints.find((c) => c.id === tileId)!.constraints;
 
         // Update the constraints for the tile above nextTile.
         let topTile = tiles.find((t) => t.x === nextTile!.x && t.y === nextTile!.y - 1);
