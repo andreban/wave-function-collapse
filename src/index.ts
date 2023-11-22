@@ -132,6 +132,11 @@ function selectLowestEntropyTile(tiles: Array<Tile>): Tile | null {
     return lowestEntropyTile;
 }
 
+function printBoard(tiles: Array<Tile>) {
+    let array = tiles.map((t) => t.selectedSprite);
+    console.log(array.join(', '));
+}
+
 (async () => {
     let shouldDeriveConstraints = deriveConstraintsCheckbox.checked;
     let allConstraints = shouldDeriveConstraints ?
@@ -158,6 +163,7 @@ function selectLowestEntropyTile(tiles: Array<Tile>): Tile | null {
         // Select the next tile.
         let nextTile = selectLowestEntropyTile(tiles);
         if (nextTile === null) {
+            // printBoard(tiles);
             return;
         }
 
