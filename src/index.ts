@@ -1,5 +1,6 @@
 import pipeConstraints from './pipe-constraints.json';
 import sampleBoard from './sample.json';
+import { deriveConstraints } from './constraints';
 
 const TILE_SIZE = 32;
 const BOARD_WIDTH = 20;
@@ -18,10 +19,6 @@ const deriveConstraintsCheckbox = document.querySelector('#derive-constraints-ch
 
 const ctx = outputCanvas.getContext('2d')!;
 
-type TileConstraints = {
-    top: Array<number>, right: Array<number>, bottom: Array<number>, left: Array<number>
-};
-
 class Tile {
     x: number;
     y: number;
@@ -34,62 +31,6 @@ class Tile {
         this.options = options;
         this.selectedSprite = undefined;
     }
-}
-
-function deriveConstraints(sampleBoard: [number]) {
-    // Gets a value at position (x, y) on the board. If the position is out of bounds, then null is
-    // returned.
-    const valueAt = (x: number, y: number): number | null => {
-        if (x < 0 || x >= BOARD_WIDTH || y < 0 || y >= BOARD_HEIGHT) {
-            return null;
-        }
-
-        let position = y * BOARD_WIDTH + x;
-        return sampleBoard[position];
-    }
-
-    let constraintsByType = new Map<number, TileConstraints>();
-    for (let col = 0; col < BOARD_WIDTH; col++) {
-        for (let row = 0; row < BOARD_HEIGHT; row++) {
-            let value = valueAt(col, row);
-            if (value === null) {
-                continue;
-            }
-
-            let constraints = constraintsByType.get(value);
-            if (!constraints) {
-                constraints = {top: [], right: [], bottom: [], left: []};
-            }
-            
-            let top = valueAt(col, row - 1);
-            if (top !== null) {
-                constraints.top.push(top);
-            }
-
-            let right = valueAt(col + 1, row);
-            if (right !== null) {
-                constraints.right.push(right);
-            }
-
-            let bottom = valueAt(col, row + 1);
-            if (bottom !== null) {
-                constraints.bottom.push(bottom);
-            }
-
-            let left = valueAt(col - 1, row);
-            if (left !== null) {
-                constraints.left.push(left);
-            }
-            constraintsByType.set(value, constraints);
-        }
-    }
-
-    return [...constraintsByType.entries()].map(([key, value]) => {
-        return {
-            id: key,
-            constraints: value,
-        }
-    });
 }
 
 async function loadImage(url: URL): Promise<HTMLImageElement> {
@@ -139,8 +80,7 @@ function printBoard(tiles: Array<Tile>) {
 
 (async () => {
     let shouldDeriveConstraints = deriveConstraintsCheckbox.checked;
-    let allConstraints = shouldDeriveConstraints ?
-         deriveConstraints(sampleBoard as [number]) : pipeConstraints;
+    let allConstraints = shouldDeriveConstraints ? deriveConstraints(sampleBoard, 20, 20) : pipeConstraints;
     let tiles: Array<Tile> = [];
     let imagePromise = await loadImage(TILE_SPRITESHEET_URL);
 
