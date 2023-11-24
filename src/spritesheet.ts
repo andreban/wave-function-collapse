@@ -2,15 +2,15 @@ const SPRITESHEET_INNER_PADDING = 2;
 const SPRITESHEET_NUM_COLS = 6;
 
 export class SpriteSheet {
-    private image: HTMLImageElement;
+    private image: ImageBitmap;
     private numCols = SPRITESHEET_NUM_COLS;
     private innerPadding = SPRITESHEET_INNER_PADDING;
 
-    constructor(image: HTMLImageElement) {
+    constructor(image: ImageBitmap) {
         this.image = image;
     }
 
-    public getImage(): HTMLImageElement {
+    public getImage(): ImageBitmap {
         return this.image;
     }
 

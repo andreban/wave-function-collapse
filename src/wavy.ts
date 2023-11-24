@@ -7,7 +7,7 @@ const BOARD_HEIGHT = 20;
 const TILE_IDS = [0, 1, 2, 3, 5, 6, 7, 8, 9, 10, 11];
 const ALPHA_OPAQUE = 1.0;
 
-export class Tile {
+class Tile {
     x: number;
     y: number;
     selectedSprite?: number;

@@ -1,7 +1,7 @@
 import pipeConstraints from './pipe-constraints.json';
 import sampleBoard from './sample.json';
 import { deriveConstraints } from './constraints';
-import { Tile, Wavy } from './wavy';
+import { Wavy } from './wavy';
 import { SpriteSheet } from './spritesheet';
 
 const TILE_SPRITESHEET_URL = new URL('pipe-tileset.png', import.meta.url);
@@ -11,8 +11,7 @@ const nextButton = document.querySelector('#next-button') as HTMLButtonElement;
 const runButton = document.querySelector('#run-button') as HTMLButtonElement;
 const resetButton = document.querySelector('#reset-button') as HTMLButtonElement;
 const deriveConstraintsCheckbox = document.querySelector('#derive-constraints-checkbox') as HTMLInputElement;
-
-const ctx = outputCanvas.getContext('2d')!;
+const offscreenCanvasSupported = 'OffscreenCanvas' in window;
 
 async function loadImage(url: URL): Promise<HTMLImageElement> {
     return new Promise((resolve, reject) => {
@@ -25,10 +24,21 @@ async function loadImage(url: URL): Promise<HTMLImageElement> {
 (async () => {
     const shouldDeriveConstraints = deriveConstraintsCheckbox.checked;
     const constraints = shouldDeriveConstraints ? deriveConstraints(sampleBoard, 20, 20) : pipeConstraints;
-    const spriteSheet = new SpriteSheet(await loadImage(TILE_SPRITESHEET_URL));
-    const wavy = new Wavy(outputCanvas, window, spriteSheet);
+    const spriteImage = await createImageBitmap(await loadImage(TILE_SPRITESHEET_URL));
 
-    nextButton.addEventListener('click', () => wavy.wavy(constraints, false));
-    runButton.addEventListener('click', () => wavy.wavy(constraints, true));
-    resetButton.addEventListener('click', () => wavy.resetBoard());
+    if (offscreenCanvasSupported) {
+        const offscreenCanvas = outputCanvas.transferControlToOffscreen();
+        const worker = new Worker(new URL('wavy-worker.ts', import.meta.url), { type: 'module' });
+        worker.postMessage({msg: 'init', canvas: offscreenCanvas, spriteImage: spriteImage}, [offscreenCanvas]);
+
+        nextButton.addEventListener('click', () => worker.postMessage({msg: 'step', constraints: constraints}));
+        runButton.addEventListener('click', () => worker.postMessage({msg: 'run', constraints: constraints}));
+        resetButton.addEventListener('click', () => worker.postMessage({msg: 'reset', constraints: constraints}));
+    } else {
+        const spriteSheet = new SpriteSheet(spriteImage);
+        const wavy = new Wavy(outputCanvas, window, spriteSheet);
+        nextButton.addEventListener('click', () => wavy.wavy(constraints, false));
+        runButton.addEventListener('click', () => wavy.wavy(constraints, true));
+        resetButton.addEventListener('click', () => wavy.resetBoard());
+    }
 })();
